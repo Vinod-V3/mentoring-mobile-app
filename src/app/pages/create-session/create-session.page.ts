@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AttachmentService, LoaderService, ToastService } from 'src/app/core/services';
+import { AttachmentService, LoaderService, ToastService, UtilService } from 'src/app/core/services';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { SessionService } from 'src/app/core/services/session/session.service';
 import {
@@ -18,6 +18,7 @@ import * as moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 import { CREATE_SESSION_FORM } from 'src/app/core/constants/formConstant';
 import { FormService } from 'src/app/core/services/form/form.service';
+import { isArray } from 'lodash';
 
 @Component({
   selector: 'app-create-session',
@@ -44,8 +45,9 @@ export class CreateSessionPage implements OnInit {
   public formData: JsonFormData;
   showForm: boolean = false;
   isSubmited: boolean;
+  isAssistanceEnabled: any;
   constructor(
-    private http: HttpClient,
+    private utilService: UtilService,
     private sessionService: SessionService,
     private toast: ToastService,
     private activatedRoute: ActivatedRoute,
@@ -66,24 +68,36 @@ export class CreateSessionPage implements OnInit {
     });
   }
   async ngOnInit() {
-    const result = await this.form.getForm(CREATE_SESSION_FORM);
-    this.formData = _.get(result, 'result.data.fields');
-    if (this.id) {
-      let response = await this.sessionService.getSessionDetailsAPI(this.id);
-      this.profileImageData.image = response.image;
-      this.profileImageData.isUploaded = true;
-      response.startDate = moment.unix(response.startDate).format("YYYY-MM-DDTHH:mm");
-      response.endDate = moment.unix(response.endDate).format("YYYY-MM-DDTHH:mm");
-      this.preFillData(response);
-    } else {
-      this.showForm = true;
+    let msg = {
+      header: 'Say hi to chatbot',
+      message: 'Do you need assistance in creating your session? we are happy to help you!',
+      cancel: 'No',
+      submit: 'Yes'
     }
-    this.isSubmited = false; //to be removed
-    this.profileImageData.isUploaded = true;
-    this.changeDetRef.detectChanges();
+    this.utilService.alertPopup(msg).then(async data => {
+      const result = await this.form.getForm(CREATE_SESSION_FORM);
+      this.formData = _.get(result, 'result.data.fields');
+      this.isAssistanceEnabled = data
+      if(!this.isAssistanceEnabled){
+        if (this.id) {
+          let response = await this.sessionService.getSessionDetailsAPI(this.id);
+          this.profileImageData.image = response.image;
+          this.profileImageData.isUploaded = true;
+          response.startDate = moment.unix(response.startDate).format("YYYY-MM-DDTHH:mm");
+          response.endDate = moment.unix(response.endDate).format("YYYY-MM-DDTHH:mm");
+          this.preFillData(response);
+        } else {
+          this.showForm = true;
+        }
+        this.isSubmited = false; //to be removed
+        this.profileImageData.isUploaded = true;
+        this.changeDetRef.detectChanges();
+      }
+    }).catch(error => { })
   }
 
   async canPageLeave() {
+    return true
     if (!this.form1.myForm.pristine || !this.profileImageData.isUploaded) {
       let texts: any;
       this.translate.get(['SESSION_FORM_UNSAVED_DATA', 'EXIT', 'BACK']).subscribe(text => {
@@ -197,5 +211,14 @@ export class CreateSessionPage implements OnInit {
     this.form1.myForm.value.image ='';
     this.form1.myForm.markAsDirty();
     this.profileImageData.isUploaded = true;
+  }
+
+  chatBotSubmit(event){
+    event.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    for (const key in event) {
+      console.log(event[key],isArray(event[key]));
+    }
+    this.isAssistanceEnabled = false;
+    this.showForm = true;
   }
 }

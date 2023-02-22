@@ -14,6 +14,7 @@
       </ion-row>
     </ion-card-content>
   </ion-card>
+  <ion-button class="ion-margin" (click)="digiLocker()" expand="full">View certificates</ion-button>
   <ion-segment [value]="segmentValue" (ionChange)="segmentChanged($event)">
     <ion-segment-button value="about">
       <ion-label class="segment-lbl">{{"ABOUT"|translate}}</ion-label>

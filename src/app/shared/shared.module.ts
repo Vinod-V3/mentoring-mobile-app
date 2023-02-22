@@ -24,6 +24,7 @@ import {
 import { SafeHtmlPipe } from './safe-html.pipe';
 import { MentorCardComponent } from './components/mentor-card/mentor-card.component';
 import { NumberOnlyDirective } from './directive/onlyNumbers';
+import { ConversationalFormComponent } from './components/conversational-form/conversational-form.component';
 
 @NgModule({
   declarations: [
@@ -45,7 +46,8 @@ import { NumberOnlyDirective } from './directive/onlyNumbers';
     PersonaSelectionCardComponent,
     GenericProfileHeaderComponent,
     MentorCardComponent,
-    NumberOnlyDirective
+    NumberOnlyDirective,
+    ConversationalFormComponent
   ],
   imports: [
     CommonModule,
@@ -72,7 +74,8 @@ import { NumberOnlyDirective } from './directive/onlyNumbers';
     SafeHtmlPipe,
     PersonaSelectionCardComponent,
     GenericProfileHeaderComponent,
-    MentorCardComponent
+    MentorCardComponent,
+    ConversationalFormComponent
   ],
 })
 export class SharedModule {}

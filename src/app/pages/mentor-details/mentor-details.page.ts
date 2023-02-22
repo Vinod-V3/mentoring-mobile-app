@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { InAppBrowser } from '@awesome-cordova-plugins/in-app-browser/ngx';
 import { localKeys } from 'src/app/core/constants/localStorage.keys';
 import { urlConstants } from 'src/app/core/constants/urlConstants';
 import { HttpService, LocalStorageService, ToastService, UserService } from 'src/app/core/services';
@@ -63,7 +64,7 @@ export class MentorDetailsPage implements OnInit {
     private sessionService: SessionService,
     private userService: UserService,
     private localStorage:LocalStorageService,
-    private toastService:ToastService
+    private inAppBrowser:InAppBrowser
   ) {
     routerParams.params.subscribe(params => {
       this.mentorId = params.id;
@@ -121,5 +122,12 @@ export class MentorDetailsPage implements OnInit {
         this.upcomingSessions = await this.sessionService.getUpcomingSessions(this.mentorId);
         break;
     }
+  }
+  digiLocker() {
+    let browser = this.inAppBrowser.create('https://www.digilocker.gov.in/', `_system`);
+    browser.on('exit').subscribe(() => {
+    }, err => {
+      console.error(err);
+    });
   }
 }
