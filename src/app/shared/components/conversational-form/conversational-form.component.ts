@@ -1,5 +1,7 @@
 import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { ConversationalForm } from "conversational-form";
+import { isArray } from 'lodash';
+import * as moment from 'moment';
 @Component({
   selector: 'app-conversational-form',
   templateUrl: './conversational-form.component.html',
@@ -10,6 +12,7 @@ export class ConversationalFormComponent implements OnInit {
   @Output() onSubmit = new EventEmitter();
 formulario: any;
   data: any;
+  arrayKeys=['recommendedFor','categories','medium']
   obj = {};
   fields = [
     {
@@ -33,24 +36,24 @@ formulario: any;
     {
       tag: "input",
       type: "checkbox",
-      name: "recommmendedFor",
+      name: "recommendedFor",
       "cf-questions": "Choose the recommended attendee?",
       "cf-label": "Head masters",
-      value: "hm"
+      value: '{"label":"Head master","value":"hm"}'
     },
     {
       tag: "input",
       type: "checkbox",
-      name: "recommmendedFor",
+      name: "recommendedFor",
       "cf-label": "District education officer",
-      value: "deo"
+      value: '{"label":"District education officer","value":"deo"}'
     },
     {
       tag: "input",
       type: "checkbox",
-      name: "recommmendedFor",
+      name: "recommendedFor",
       "cf-label": "Block education officer",
-      value: "beo"
+      value: '{"label":"Block education officer","value":"beo"}'
     },
     {
       tag: "input",
@@ -58,70 +61,78 @@ formulario: any;
       name: "categories",
       "cf-questions": "Choose the category which this session belongs to?",
       "cf-label": "School process",
-      value: "School process"
+      value: '{"label":"School process","value":"School process"}'
     },
     {
       tag: "input",
       type: "checkbox",
       name: "categories",
       "cf-label": "Educational leadership",
-      value: "Educational leadership"
+      value: '{"label":"Educational leadership","value":"Educational leadership"}'
     },
     {
       tag: "input",
       type: "checkbox",
       name: "categories",
       "cf-label": "SQAA",
-      value: "SQAA"
+      value: '{"label":"SQAA", "value":"SQAA"}'
     },
     {
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: new Date().getDate() + "/" + new Date().getMonth(),
+      value: moment().format("DD-MM-YYYY"),
       "cf-questions": "Choose the start date?",
-      "cf-label": new Date().getDate() + "/" + new Date().getMonth(),
+      "cf-label": moment().format("DD-MM-YYYY"),
 
     },
     {
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: new Date().getDate() + "/" + new Date().getMonth(),
-      "cf-label": new Date().getDate()+1+ "/" + new Date().getMonth(),
+      value: moment().add(1,'d').format("DD-MM-YYYY"),
+      "cf-label": moment().add(1,'d').format("DD-MM-YYYY"),
     },
     {
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: new Date().getDate() + "/" + new Date().getMonth(),
-      "cf-label": new Date().getDate()+2+ "/" + new Date().getMonth(),
+      value: moment().add(2,'d').format("DD-MM-YYYY"),
+      "cf-label": moment().add(2,'d').format("DD-MM-YYYY"),
     },
     {
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: new Date().getDate() + "/" + new Date().getMonth(),
-      "cf-label": new Date().getDate()+3+ "/" + new Date().getMonth(),
+      value: moment().add(3,'d').format("DD-MM-YYYY"),
+      "cf-label": moment().add(3,'d').format("DD-MM-YYYY"),
     },
     {
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: new Date().getDate() + "/" + new Date().getMonth(),
-      "cf-label": new Date().getDate()+4+ "/" + new Date().getMonth(),
+      value: moment().add(4,'d').format("DD-MM-YYYY"),
+      "cf-label": moment().add(4,'d').format("DD-MM-YYYY"),
     },
     {
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: new Date().getDate() + "/" + new Date().getMonth(),
-      "cf-label": new Date().getDate()+5+ "/" + new Date().getMonth(),
+      value: moment().add(5,'d').format("DD-MM-YYYY"),
+      "cf-label": moment().add(5,'d').format("DD-MM-YYYY"),
+    },
+    {
+      tag: "input",
+      type: "radio",
+      name: "startDate",
+      value: moment().add(6,'d').format("DD-MM-YYYY"),
+      "cf-label": moment().add(6,'d').format("DD-MM-YYYY"),
     },
     {
       tag: "input",
       type: "radio",
       name: "startTime",
+      // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       value: '1:00',
       "cf-questions": "Choose the start time?",
       "cf-label": "1:00"
@@ -131,6 +142,7 @@ formulario: any;
       type: "radio",
       name: "startTime",
       value: '2:00',
+      // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       "cf-label": "2:00"
     },
     {
@@ -138,6 +150,7 @@ formulario: any;
       type: "radio",
       name: "startTime",
       value: '3:00',
+      // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       "cf-label": "3:00"
     },
     {
@@ -145,6 +158,7 @@ formulario: any;
       type: "radio",
       name: "startTime",
       value: '4:00',
+      // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       "cf-label": "4:00"
     },
     {
@@ -152,6 +166,7 @@ formulario: any;
       type: "radio",
       name: "startTime",
       value: '5:00',
+      // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       "cf-label": "5:00"
     },
     {
@@ -159,6 +174,7 @@ formulario: any;
       type: "radio",
       name: "startTime",
       value: '6:00',
+      // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       "cf-label": "6:00"
     },
     {
@@ -166,6 +182,7 @@ formulario: any;
       type: "radio",
       name: "startTime",
       value: '7:00',
+      // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       "cf-label": "7:00"
     },
     {
@@ -173,6 +190,7 @@ formulario: any;
       type: "radio",
       name: "startTime",
       value: '8:00',
+      // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       "cf-label": "8:00"
     },
     {
@@ -210,14 +228,14 @@ formulario: any;
       name: "medium",
       "cf-questions": "Great!!!. Now tell me the language in which you planning to take the session",
       "cf-label": "English",
-      value: "1"
+      value: '{"label":"English","value":"1"}'
     },
     {
       tag: "input",
       type: "checkbox",
       name: "medium",
       "cf-label": "Hindi",
-      value: "2"
+      value: '{"label":"Hindi","value":"2"}'
     },
   ];
 
@@ -247,18 +265,23 @@ formulario: any;
     let formDataSerialized = this.formulario.getFormData(true);
     this.data = formDataSerialized;
     this.formulario.addRobotChatResponse(
-      "Thanks, " +
-        this.data.title +
-        " you can preview the provided details now."
+      "Thanks, you can preview the provided details now."
     );
-    this.onSubmit.emit(formDataSerialized)
+    // for (const key in formDataSerialized) {
+    //   if(isArray(formDataSerialized[key])){
+    //     console.log(formDataSerialized[key])
+    //   }
+    // }
+    this.arrayKeys.forEach((value:string)=>{
+      let i=0;
+      formDataSerialized[value].forEach((entry:any)=>{
+        formDataSerialized[value][i]=JSON.parse(entry)
+        i++;
+      })
+    })
     setTimeout(()=>{
+      this.onSubmit.emit(formDataSerialized)
       this.formulario.remove()
     },2000)
-    // this.sendEmail(this.obj);
   }
-
-  // sendEmail(data) {
-  //   alert('EMAIL SEND WITH SUCCESS');
-  // }
 }

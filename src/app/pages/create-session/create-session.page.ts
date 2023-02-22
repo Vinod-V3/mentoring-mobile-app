@@ -18,7 +18,6 @@ import * as moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 import { CREATE_SESSION_FORM } from 'src/app/core/constants/formConstant';
 import { FormService } from 'src/app/core/services/form/form.service';
-import { isArray } from 'lodash';
 
 @Component({
   selector: 'app-create-session',
@@ -68,6 +67,7 @@ export class CreateSessionPage implements OnInit {
     });
   }
   async ngOnInit() {
+    console.log(moment().format("YYYY-MM-DD"))
     let msg = {
       header: 'Say hi to chatbot',
       message: 'Do you need assistance in creating your session? we are happy to help you!',
@@ -215,9 +215,8 @@ export class CreateSessionPage implements OnInit {
 
   chatBotSubmit(event){
     event.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    for (const key in event) {
-      console.log(event[key],isArray(event[key]));
-    }
+    this.preFillData(event)
+    console.log(event)
     this.isAssistanceEnabled = false;
     this.showForm = true;
   }
