@@ -57,7 +57,7 @@ export class HttpService {
     return this.http.post(this.baseUrl + requestParam.url, body, headers)
       .then((data: any) => {
         let result: any = JSON.parse(data.data);
-        if (result.responseCode === "OK") {
+        if (result.responseCode === "OK"|| data.status == 200) {
           return result;
         }
       }, error => {

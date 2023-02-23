@@ -1,7 +1,10 @@
 import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
+import { HTTP } from '@ionic-native/http/ngx';
 import { ConversationalForm } from "conversational-form";
 import { isArray } from 'lodash';
 import * as moment from 'moment';
+import { urlConstants } from 'src/app/core/constants/urlConstants';
+import { HttpService, LoaderService, ToastService } from 'src/app/core/services';
 @Component({
   selector: 'app-conversational-form',
   templateUrl: './conversational-form.component.html',
@@ -10,9 +13,10 @@ import * as moment from 'moment';
 export class ConversationalFormComponent implements OnInit {
   @ViewChild("form") form: ElementRef;
   @Output() onSubmit = new EventEmitter();
-formulario: any;
+  formulario: any;
   data: any;
-  arrayKeys=['recommendedFor','categories','medium']
+  arrayKeys = ['recommendedFor', 'categories', 'medium']
+  timeKeys = ['startDate', 'startTime']
   obj = {};
   fields = [
     {
@@ -21,17 +25,10 @@ formulario: any;
     },
     {
       tag: "input",
-      type: "text",
-      required: "required",
-      name: "title",
-      "cf-questions": "What is the session title?",
-    },
-    {
-      tag: "input",
       required: "required",
       type: "text",
-      name: "description",
-      "cf-questions": "Please provide a description for the session",
+      name: "aboutSession",
+      "cf-questions": "What is this session about?",
     },
     {
       tag: "input",
@@ -81,7 +78,7 @@ formulario: any;
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: moment().format("DD-MM-YYYY"),
+      value: moment().format("YYYY-MM-DD"),
       "cf-questions": "Choose the start date?",
       "cf-label": moment().format("DD-MM-YYYY"),
 
@@ -90,43 +87,43 @@ formulario: any;
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: moment().add(1,'d').format("DD-MM-YYYY"),
-      "cf-label": moment().add(1,'d').format("DD-MM-YYYY"),
+      value: moment().add(1, 'd').format("YYYY-MM-DD"),
+      "cf-label": moment().add(1, 'd').format("DD-MM-YYYY"),
     },
     {
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: moment().add(2,'d').format("DD-MM-YYYY"),
-      "cf-label": moment().add(2,'d').format("DD-MM-YYYY"),
+      value: moment().add(2, 'd').format("YYYY-MM-DD"),
+      "cf-label": moment().add(2, 'd').format("DD-MM-YYYY"),
     },
     {
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: moment().add(3,'d').format("DD-MM-YYYY"),
-      "cf-label": moment().add(3,'d').format("DD-MM-YYYY"),
+      value: moment().add(3, 'd').format("YYYY-MM-DD"),
+      "cf-label": moment().add(3, 'd').format("DD-MM-YYYY"),
     },
     {
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: moment().add(4,'d').format("DD-MM-YYYY"),
-      "cf-label": moment().add(4,'d').format("DD-MM-YYYY"),
+      value: moment().add(4, 'd').format("YYYY-MM-DD"),
+      "cf-label": moment().add(4, 'd').format("DD-MM-YYYY"),
     },
     {
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: moment().add(5,'d').format("DD-MM-YYYY"),
-      "cf-label": moment().add(5,'d').format("DD-MM-YYYY"),
+      value: moment().add(5, 'd').format("YYYY-MM-DD"),
+      "cf-label": moment().add(5, 'd').format("DD-MM-YYYY"),
     },
     {
       tag: "input",
       type: "radio",
       name: "startDate",
-      value: moment().add(6,'d').format("DD-MM-YYYY"),
-      "cf-label": moment().add(6,'d').format("DD-MM-YYYY"),
+      value: moment().add(6, 'd').format("YYYY-MM-DD"),
+      "cf-label": moment().add(6, 'd').format("DD-MM-YYYY"),
     },
     {
       tag: "input",
@@ -135,7 +132,7 @@ formulario: any;
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       value: '1:00',
       "cf-questions": "Choose the start time?",
-      "cf-label": "1:00"
+      "cf-label": moment().format("HH") + ':00'
     },
     {
       tag: "input",
@@ -143,7 +140,7 @@ formulario: any;
       name: "startTime",
       value: '2:00',
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
-      "cf-label": "2:00"
+      "cf-label": moment().add(1, 'h').format("HH") + ':00'
     },
     {
       tag: "input",
@@ -151,7 +148,7 @@ formulario: any;
       name: "startTime",
       value: '3:00',
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
-      "cf-label": "3:00"
+      "cf-label": moment().add(2, 'h').format("HH") + ':00'
     },
     {
       tag: "input",
@@ -159,7 +156,7 @@ formulario: any;
       name: "startTime",
       value: '4:00',
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
-      "cf-label": "4:00"
+      "cf-label": moment().add(3, 'h').format("HH") + ':00'
     },
     {
       tag: "input",
@@ -167,7 +164,7 @@ formulario: any;
       name: "startTime",
       value: '5:00',
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
-      "cf-label": "5:00"
+      "cf-label": moment().add(4, 'h').format("HH") + ':00'
     },
     {
       tag: "input",
@@ -175,7 +172,7 @@ formulario: any;
       name: "startTime",
       value: '6:00',
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
-      "cf-label": "6:00"
+      "cf-label": moment().add(1, 'h').format("HH") + ':00'
     },
     {
       tag: "input",
@@ -237,21 +234,28 @@ formulario: any;
       "cf-label": "Hindi",
       value: '{"label":"Hindi","value":"2"}'
     },
+    {
+      tag: "input",
+      type: "file",
+      name: "images",
+      accept: "image/*",
+      "cf-questions": "Finally, please upload image for your session",
+    },
   ];
 
-  constructor() {}
+  constructor(private loaderService: LoaderService, private http: HttpService, private toast: ToastService) { }
 
 
   ngOnInit() {
     this.formulario = ConversationalForm.startTheConversation({
       options: {
         formEl: document.getElementById("form"),
-        theme: "dark",
+        theme: "red",
         scrollAcceleration: 0,
         showProgressBar: true,
-        hideUserInputOnNoneTextInput: true,
+        hideUserInputOnNoneTextInput: false,
         submitCallback: this.submitCallbackRobot.bind(this),
-        preventAutoFocus: true,
+        preventAutoFocus: false,
         robotImage:
           "https://pbs.twimg.com/profile_images/1120639951056572417/Rs0Dm2mm_400x400.jpg",
         userImage: "https://cdn.worldvectorlogo.com/logos/ubuntu-5.svg",
@@ -263,7 +267,6 @@ formulario: any;
 
   submitCallbackRobot() {
     let formDataSerialized = this.formulario.getFormData(true);
-    this.data = formDataSerialized;
     this.formulario.addRobotChatResponse(
       "Thanks, you can preview the provided details now."
     );
@@ -272,16 +275,45 @@ formulario: any;
     //     console.log(formDataSerialized[key])
     //   }
     // }
-    this.arrayKeys.forEach((value:string)=>{
-      let i=0;
-      formDataSerialized[value].forEach((entry:any)=>{
-        formDataSerialized[value][i]=JSON.parse(entry)
+    formDataSerialized.startDate = new Date(formDataSerialized.startDate + " " + formDataSerialized.startTime).getTime();
+    formDataSerialized.endDate = moment(formDataSerialized.startDate).add(formDataSerialized.duration, 'm').toDate().getTime();
+    formDataSerialized.startDate=formDataSerialized.startDate/1000
+    formDataSerialized.endDate=formDataSerialized.endDate/1000
+    this.data = {
+      "aboutSession": formDataSerialized.aboutSession,
+      "startDate": formDataSerialized.startDate,
+      "endDate": formDataSerialized.endDate};
+    this.arrayKeys.forEach((value: string) => {
+      let i = 0;
+      formDataSerialized[value].forEach((entry: any) => {
+        formDataSerialized[value][i] = JSON.parse(entry)
         i++;
       })
     })
-    setTimeout(()=>{
+    setTimeout(async () => {
+      let response = await this.getChatGPTResponse()
+      console.log("api res: ",response)
+      formDataSerialized.title = response.sessionTitle;
+      formDataSerialized.description = response.sessionDescription;
       this.onSubmit.emit(formDataSerialized)
       this.formulario.remove()
-    },2000)
+    }, 2000)
+  }
+
+  async getChatGPTResponse() {
+    const config = {
+      url: urlConstants.API_URLS.AUTOFILL,
+      payload: this.data,
+    };
+    try {
+      let data: any = await this.http.post(config);
+      return data;
+    }
+    catch (error) {
+    }
+  }
+  handleError(error: any): any {
+    console.log(error)
+    this.toast.showToast("Something went wrong","danger")
   }
 }

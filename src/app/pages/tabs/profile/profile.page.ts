@@ -72,6 +72,7 @@ export class ProfilePage implements OnInit {
   }
   async ionViewWillEnter() {
     this.user = await this.localStorage.getLocalData(localKeys.USER_DETAILS)
+    console.log(await this.localStorage.getLocalData(localKeys.TOKEN))
     this.fetchProfileDetails();
     this.gotToTop();
   }
