@@ -1,10 +1,7 @@
 import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
-import { HTTP } from '@ionic-native/http/ngx';
 import * as conversationalForm from "conversational-form";
-import { isArray } from 'lodash';
 import * as moment from 'moment';
-import { urlConstants } from 'src/app/core/constants/urlConstants';
-import { AttachmentService, HttpService, LoaderService, ToastService } from 'src/app/core/services';
+import { AttachmentService, ToastService } from 'src/app/core/services';
 @Component({
   selector: 'app-conversational-form',
   templateUrl: './conversational-form.component.html',
@@ -27,7 +24,7 @@ export class ConversationalFormComponent implements OnInit {
   fields = [
     {
       tag: "cf-robot-message",
-      "cf-questions": "Hello, I am here to help you with creating your session! Please answer the following questions",
+      "cf-questions": "Hint: Please provide key points about the session so that Chat-GPT can create accurate contents for your session",
     },
     {
       tag: "input",

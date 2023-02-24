@@ -271,3 +271,20 @@ ion-accordion-group{
       }
   }
 }
+.conversational-form-inner {
+  font-size: large !important;
+  textarea {
+    font-size: medium !important;
+    color: #000 !important;
+  }
+  p {
+    // background: var(--ion-color-primary) !important;
+    color: var(--ion-color-primary) !important;
+  }
+  span {
+    color: var(--ion-color-primary) !important;
+  }
+  .robot{
+    color: #000 !important;
+  }
+}

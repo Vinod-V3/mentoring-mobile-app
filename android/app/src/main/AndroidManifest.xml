@@ -13,8 +13,7 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             android:name="org.elevate.mentoring.MainActivity"
             android:label="@string/title_activity_main"
-            android:launchMode="singleInstance"
-            android:exported="true">
+            android:launchMode="singleInstance">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
