@@ -215,7 +215,6 @@ export class CreateSessionPage implements OnInit {
   chatBotSubmit(event){
     console.log(event)
     event.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    // this.profileImageData.image=event.images;
     event.startDate=moment.unix(event.startDate).format("YYYY-MM-DDTHH:mm");
     event.endDate=moment.unix(event.endDate).format("YYYY-MM-DDTHH:mm");
     console.log(event)

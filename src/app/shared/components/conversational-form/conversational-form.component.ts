@@ -4,7 +4,7 @@ import { ConversationalForm } from "conversational-form";
 import { isArray } from 'lodash';
 import * as moment from 'moment';
 import { urlConstants } from 'src/app/core/constants/urlConstants';
-import { HttpService, LoaderService, ToastService } from 'src/app/core/services';
+import { AttachmentService, HttpService, LoaderService, ToastService } from 'src/app/core/services';
 @Component({
   selector: 'app-conversational-form',
   templateUrl: './conversational-form.component.html',
@@ -13,11 +13,17 @@ import { HttpService, LoaderService, ToastService } from 'src/app/core/services'
 export class ConversationalFormComponent implements OnInit {
   @ViewChild("form") form: ElementRef;
   @Output() onSubmit = new EventEmitter();
+  @Output() imageUploadEvent = new EventEmitter();
   formulario: any;
   data: any;
   arrayKeys = ['recommendedFor', 'categories', 'medium']
   timeKeys = ['startDate', 'startTime']
   obj = {};
+  profileImageData = {
+    name: "",
+    type: "image/jpeg",
+    isUploaded: false
+  }
   fields = [
     {
       tag: "cf-robot-message",
@@ -130,23 +136,15 @@ export class ConversationalFormComponent implements OnInit {
       type: "radio",
       name: "startTime",
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
-      value: '1:00',
+      value: moment().add(1, 'h').format("HH") + ':00',
       "cf-questions": "Choose the start time?",
-      "cf-label": moment().format("HH") + ':00'
-    },
-    {
-      tag: "input",
-      type: "radio",
-      name: "startTime",
-      value: '2:00',
-      // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       "cf-label": moment().add(1, 'h').format("HH") + ':00'
     },
     {
       tag: "input",
       type: "radio",
       name: "startTime",
-      value: '3:00',
+      value: moment().add(2, 'h').format("HH") + ':00',
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       "cf-label": moment().add(2, 'h').format("HH") + ':00'
     },
@@ -154,7 +152,7 @@ export class ConversationalFormComponent implements OnInit {
       tag: "input",
       type: "radio",
       name: "startTime",
-      value: '4:00',
+      value: moment().add(3, 'h').format("HH") + ':00',
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       "cf-label": moment().add(3, 'h').format("HH") + ':00'
     },
@@ -162,7 +160,7 @@ export class ConversationalFormComponent implements OnInit {
       tag: "input",
       type: "radio",
       name: "startTime",
-      value: '5:00',
+      value: moment().add(4, 'h').format("HH") + ':00',
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
       "cf-label": moment().add(4, 'h').format("HH") + ':00'
     },
@@ -170,25 +168,33 @@ export class ConversationalFormComponent implements OnInit {
       tag: "input",
       type: "radio",
       name: "startTime",
-      value: '6:00',
+      value: moment().add(5, 'h').format("HH") + ':00',
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
-      "cf-label": moment().add(1, 'h').format("HH") + ':00'
+      "cf-label": moment().add(5, 'h').format("HH") + ':00'
     },
     {
       tag: "input",
       type: "radio",
       name: "startTime",
-      value: '7:00',
+      value: moment().add(6, 'h').format("HH") + ':00',
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
-      "cf-label": "7:00"
+      "cf-label": moment().add(6, 'h').format("HH") + ':00'
     },
     {
       tag: "input",
       type: "radio",
       name: "startTime",
-      value: '8:00',
+      value: moment().add(7, 'h').format("HH") + ':00',
       // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
-      "cf-label": "8:00"
+      "cf-label": moment().add(7, 'h').format("HH") + ':00'
+    },
+    {
+      tag: "input",
+      type: "radio",
+      name: "startTime",
+      value: moment().add(8, 'h').format("HH") + ':00',
+      // "cf-conditional-startDate": moment().format("DD-MM-YYYY"),
+      "cf-label": moment().add(8, 'h').format("HH") + ':00'
     },
     {
       tag: "input",
@@ -243,7 +249,7 @@ export class ConversationalFormComponent implements OnInit {
     },
   ];
 
-  constructor(private loaderService: LoaderService, private http: HttpService, private toast: ToastService) { }
+  constructor(private attachment: AttachmentService, private http: HttpService, private toast: ToastService) { }
 
 
   ngOnInit() {
@@ -255,6 +261,7 @@ export class ConversationalFormComponent implements OnInit {
         showProgressBar: true,
         hideUserInputOnNoneTextInput: false,
         submitCallback: this.submitCallbackRobot.bind(this),
+        // flowStepCallback: this.flowStepCallback,
         preventAutoFocus: false,
         robotImage:
           "https://pbs.twimg.com/profile_images/1120639951056572417/Rs0Dm2mm_400x400.jpg",
@@ -264,6 +271,11 @@ export class ConversationalFormComponent implements OnInit {
     });
     this.form.nativeElement.appendChild(this.formulario.el);
   }
+
+  // flowStepCallback = function (dto, success) {
+  //   console.log("dto....", dto, success);
+  //   success();
+  // };
 
   submitCallbackRobot() {
     let formDataSerialized = this.formulario.getFormData(true);
@@ -277,12 +289,17 @@ export class ConversationalFormComponent implements OnInit {
     // }
     formDataSerialized.startDate = new Date(formDataSerialized.startDate + " " + formDataSerialized.startTime).getTime();
     formDataSerialized.endDate = moment(formDataSerialized.startDate).add(formDataSerialized.duration, 'm').toDate().getTime();
-    formDataSerialized.startDate=formDataSerialized.startDate/1000
-    formDataSerialized.endDate=formDataSerialized.endDate/1000
+    formDataSerialized.startDate = formDataSerialized.startDate / 1000
+    formDataSerialized.endDate = formDataSerialized.endDate / 1000
+    if (formDataSerialized.images) {
+      formDataSerialized.images = this.profileImageData.name = formDataSerialized.images.replace("C:\\fakepath\\", "");
+      this.imageUploadEvent.emit(this.profileImageData);
+    }
     this.data = {
       "aboutSession": formDataSerialized.aboutSession,
       "startDate": formDataSerialized.startDate,
-      "endDate": formDataSerialized.endDate};
+      "endDate": formDataSerialized.endDate
+    };
     this.arrayKeys.forEach((value: string) => {
       let i = 0;
       formDataSerialized[value].forEach((entry: any) => {
@@ -292,7 +309,7 @@ export class ConversationalFormComponent implements OnInit {
     })
     setTimeout(async () => {
       let response = await this.getChatGPTResponse()
-      console.log("api res: ",response)
+      console.log("api res: ", response)
       formDataSerialized.title = response.sessionTitle;
       formDataSerialized.description = response.sessionDescription;
       this.onSubmit.emit(formDataSerialized)
@@ -314,6 +331,6 @@ export class ConversationalFormComponent implements OnInit {
   }
   handleError(error: any): any {
     console.log(error)
-    this.toast.showToast("Something went wrong","danger")
+    this.toast.showToast("Something went wrong", "danger")
   }
 }
