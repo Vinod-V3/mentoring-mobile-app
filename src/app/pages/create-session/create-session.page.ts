@@ -45,6 +45,7 @@ export class CreateSessionPage implements OnInit {
   showForm: boolean = false;
   isSubmited: boolean;
   isAssistanceEnabled: any;
+  data: any;
   constructor(
     private utilService: UtilService,
     private sessionService: SessionService,
@@ -59,7 +60,8 @@ export class CreateSessionPage implements OnInit {
     private translate: TranslateService,
     private alert: AlertController,
     private form: FormService,
-    private changeDetRef: ChangeDetectorRef
+    private changeDetRef: ChangeDetectorRef,
+    private http: HttpService,
   ) {
     this.activatedRoute.queryParamMap.subscribe(params => {
       this.id = params?.get('id');
@@ -212,14 +214,44 @@ export class CreateSessionPage implements OnInit {
     this.profileImageData.isUploaded = true;
   }
 
-  chatBotSubmit(event){
-    console.log(event)
-    event.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    event.startDate=moment.unix(event.startDate).format("YYYY-MM-DDTHH:mm");
-    event.endDate=moment.unix(event.endDate).format("YYYY-MM-DDTHH:mm");
-    console.log(event)
-    this.preFillData(event)
-    this.isAssistanceEnabled = false;
-    this.showForm = true;
+  chatBotSubmit(event,data){
+    this.data = {
+      "aboutSession": event.aboutSession,
+      "startDate": event.startDate,
+      "endDate": event.endDate
+    };
+    this.uploadImage();
+     this.getChatGPTResponse().then((response)=>{
+      event.title = response.sessionTitle;
+      event.description = response.sessionDescription;
+      event.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      event.startDate=moment.unix(event.startDate).format("YYYY-MM-DDTHH:mm");
+      event.endDate=moment.unix(event.endDate).format("YYYY-MM-DDTHH:mm");
+      this.preFillData(event)
+      this.isAssistanceEnabled = false;
+      this.showForm = true;
+    })
+  }
+  uploadImage() {
+    this.attachment.selectImage(this.profileImageData.type).then(resp => {
+      if(resp.data){
+        this.imageUploadEvent(resp.data);
+      }
+    },error =>{
+      console.log(error,"error");
+    })
+  }
+
+  async getChatGPTResponse() {
+    const config = {
+      url: urlConstants.API_URLS.AUTOFILL,
+      payload: this.data,
+    };
+    try {
+      let data: any = await this.http.post(config);
+      return data;
+    }
+    catch (error) {
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { HTTP } from '@ionic-native/http/ngx';
-import { ConversationalForm } from "conversational-form";
+import * as conversationalForm from "conversational-form";
 import { isArray } from 'lodash';
 import * as moment from 'moment';
 import { urlConstants } from 'src/app/core/constants/urlConstants';
@@ -41,8 +41,8 @@ export class ConversationalFormComponent implements OnInit {
       type: "checkbox",
       name: "recommendedFor",
       "cf-questions": "Choose the recommended attendee?",
-      "cf-label": "Head masters",
-      value: '{"label":"Head master","value":"hm"}'
+      "cf-label": "Head master",
+      value: '{"label":"Head Master","value":"hm"}'
     },
     {
       tag: "input",
@@ -239,67 +239,40 @@ export class ConversationalFormComponent implements OnInit {
       name: "medium",
       "cf-label": "Hindi",
       value: '{"label":"Hindi","value":"2"}'
-    },
-    {
-      tag: "input",
-      type: "file",
-      name: "images",
-      accept: "image/*",
-      "cf-questions": "Finally, please upload image for your session",
-    },
+    }
   ];
 
-  constructor(private attachment: AttachmentService, private http: HttpService, private toast: ToastService) { }
+  constructor(private attachment: AttachmentService, private toast: ToastService) { }
 
 
   ngOnInit() {
-    this.formulario = ConversationalForm.startTheConversation({
+    this.formulario = conversationalForm.startTheConversation({
       options: {
         formEl: document.getElementById("form"),
-        theme: "red",
         scrollAcceleration: 0,
         showProgressBar: true,
         hideUserInputOnNoneTextInput: false,
         submitCallback: this.submitCallbackRobot.bind(this),
-        // flowStepCallback: this.flowStepCallback,
-        preventAutoFocus: false,
-        robotImage:
-          "https://pbs.twimg.com/profile_images/1120639951056572417/Rs0Dm2mm_400x400.jpg",
-        userImage: "https://cdn.worldvectorlogo.com/logos/ubuntu-5.svg",
+        preventAutoFocus: false
       },
       tags: this.fields,
     });
     this.form.nativeElement.appendChild(this.formulario.el);
   }
 
-  // flowStepCallback = function (dto, success) {
-  //   console.log("dto....", dto, success);
-  //   success();
-  // };
-
   submitCallbackRobot() {
     let formDataSerialized = this.formulario.getFormData(true);
-    this.formulario.addRobotChatResponse(
-      "Thanks, you can preview the provided details now."
-    );
-    // for (const key in formDataSerialized) {
-    //   if(isArray(formDataSerialized[key])){
-    //     console.log(formDataSerialized[key])
-    //   }
-    // }
     formDataSerialized.startDate = new Date(formDataSerialized.startDate + " " + formDataSerialized.startTime).getTime();
     formDataSerialized.endDate = moment(formDataSerialized.startDate).add(formDataSerialized.duration, 'm').toDate().getTime();
     formDataSerialized.startDate = formDataSerialized.startDate / 1000
     formDataSerialized.endDate = formDataSerialized.endDate / 1000
-    if (formDataSerialized.images) {
-      formDataSerialized.images = this.profileImageData.name = formDataSerialized.images.replace("C:\\fakepath\\", "");
-      this.imageUploadEvent.emit(this.profileImageData);
-    }
-    this.data = {
-      "aboutSession": formDataSerialized.aboutSession,
-      "startDate": formDataSerialized.startDate,
-      "endDate": formDataSerialized.endDate
-    };
+    this.formulario.addRobotChatResponse(
+      "Please upload image for your session"
+    );
+    setTimeout(async () => {
+      this.formulario.remove()
+      this.onSubmit.emit(formDataSerialized)
+    }, 2000)
     this.arrayKeys.forEach((value: string) => {
       let i = 0;
       formDataSerialized[value].forEach((entry: any) => {
@@ -307,28 +280,8 @@ export class ConversationalFormComponent implements OnInit {
         i++;
       })
     })
-    setTimeout(async () => {
-      let response = await this.getChatGPTResponse()
-      console.log("api res: ", response)
-      formDataSerialized.title = response.sessionTitle;
-      formDataSerialized.description = response.sessionDescription;
-      this.onSubmit.emit(formDataSerialized)
-      this.formulario.remove()
-    }, 2000)
   }
 
-  async getChatGPTResponse() {
-    const config = {
-      url: urlConstants.API_URLS.AUTOFILL,
-      payload: this.data,
-    };
-    try {
-      let data: any = await this.http.post(config);
-      return data;
-    }
-    catch (error) {
-    }
-  }
   handleError(error: any): any {
     console.log(error)
     this.toast.showToast("Something went wrong", "danger")
