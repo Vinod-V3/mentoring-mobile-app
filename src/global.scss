@@ -288,3 +288,7 @@ ion-accordion-group{
     color: #000 !important;
   }
 }
+ion-loading.custom-loading {
+  --background: #bcbec0;
+  --spinner-color: var(--ion-color-primary);
+}

@@ -269,7 +269,7 @@ export class ConversationalFormComponent implements OnInit {
     setTimeout(async () => {
       this.formulario.remove()
       this.onSubmit.emit(formDataSerialized)
-    }, 2000)
+    }, 3000)
     this.arrayKeys.forEach((value: string) => {
       let i = 0;
       formDataSerialized[value].forEach((entry: any) => {
