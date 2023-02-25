@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AttachmentService, LoaderService, ToastService } from 'src/app/core/services';
+import { AttachmentService, LoaderService, ToastService, UtilService } from 'src/app/core/services';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { SessionService } from 'src/app/core/services/session/session.service';
 import {
@@ -11,7 +11,7 @@ import {
 import { CommonRoutes } from 'src/global.routes';
 import * as _ from 'lodash-es';
 import { Location } from '@angular/common';
-import { AlertController, Platform } from '@ionic/angular';
+import { AlertController, LoadingController, Platform } from '@ionic/angular';
 import { File } from "@ionic-native/file/ngx";
 import { urlConstants } from 'src/app/core/constants/urlConstants';
 import * as moment from 'moment';
@@ -44,8 +44,11 @@ export class CreateSessionPage implements OnInit {
   public formData: JsonFormData;
   showForm: boolean = false;
   isSubmited: boolean;
+  isAssistanceEnabled: any;
+  data: any;
+  loading: HTMLIonLoadingElement;
   constructor(
-    private http: HttpClient,
+    private utilService: UtilService,
     private sessionService: SessionService,
     private toast: ToastService,
     private activatedRoute: ActivatedRoute,
@@ -58,7 +61,9 @@ export class CreateSessionPage implements OnInit {
     private translate: TranslateService,
     private alert: AlertController,
     private form: FormService,
-    private changeDetRef: ChangeDetectorRef
+    private changeDetRef: ChangeDetectorRef,
+    private http: HttpService,
+    private loadingCtrl: LoadingController
   ) {
     this.activatedRoute.queryParamMap.subscribe(params => {
       this.id = params?.get('id');
@@ -66,24 +71,36 @@ export class CreateSessionPage implements OnInit {
     });
   }
   async ngOnInit() {
-    const result = await this.form.getForm(CREATE_SESSION_FORM);
-    this.formData = _.get(result, 'result.data.fields');
-    if (this.id) {
-      let response = await this.sessionService.getSessionDetailsAPI(this.id);
-      this.profileImageData.image = response.image;
-      this.profileImageData.isUploaded = true;
-      response.startDate = moment.unix(response.startDate).format("YYYY-MM-DDTHH:mm");
-      response.endDate = moment.unix(response.endDate).format("YYYY-MM-DDTHH:mm");
-      this.preFillData(response);
-    } else {
-      this.showForm = true;
+    let msg = {
+      header: 'Hi there! i am MentorED chatbot...',
+      message: 'Do you need my assistance in creating your session? we are happy to help you!',
+      cancel: 'No',
+      submit: 'Yes'
     }
-    this.isSubmited = false; //to be removed
-    this.profileImageData.isUploaded = true;
-    this.changeDetRef.detectChanges();
+    this.utilService.alertPopup(msg).then(async data => {
+      const result = await this.form.getForm(CREATE_SESSION_FORM);
+      this.formData = _.get(result, 'result.data.fields');
+      this.isAssistanceEnabled = data
+      if (!this.isAssistanceEnabled) {
+        if (this.id) {
+          let response = await this.sessionService.getSessionDetailsAPI(this.id);
+          this.profileImageData.image = response.image;
+          this.profileImageData.isUploaded = true;
+          response.startDate = moment.unix(response.startDate).format("YYYY-MM-DDTHH:mm");
+          response.endDate = moment.unix(response.endDate).format("YYYY-MM-DDTHH:mm");
+          this.preFillData(response);
+        } else {
+          this.showForm = true;
+        }
+        this.isSubmited = false; //to be removed
+        this.profileImageData.isUploaded = true;
+        this.changeDetRef.detectChanges();
+      }
+    }).catch(error => { })
   }
 
   async canPageLeave() {
+    return true
     if (!this.form1.myForm.pristine || !this.profileImageData.isUploaded) {
       let texts: any;
       this.translate.get(['SESSION_FORM_UNSAVED_DATA', 'EXIT', 'BACK']).subscribe(text => {
@@ -120,7 +137,7 @@ export class CreateSessionPage implements OnInit {
 
 
   async onSubmit() {
-    if(!this.isSubmited){
+    if (!this.isSubmited) {
       this.form1.onSubmit();
       this.isSubmited = true;
     }
@@ -137,7 +154,7 @@ export class CreateSessionPage implements OnInit {
         let result = await this.sessionService.createSession(form, this.id);
         if (result) {
           this.location.back()
-        }else {
+        } else {
           this.profileImageData.image = this.lastUploadedImage;
           this.profileImageData.isUploaded = false;
         }
@@ -187,15 +204,70 @@ export class CreateSessionPage implements OnInit {
 
   imageUploadEvent(event) {
     this.localImage = event;
-    this.profileImageData.image = this.lastUploadedImage =  this.win.Ionic.WebView.convertFileSrc(this.path + event.name);
+    this.profileImageData.image = this.lastUploadedImage = this.win.Ionic.WebView.convertFileSrc(this.path + event.name);
     this.profileImageData.isUploaded = false;
-  
+
   }
 
-  imageRemoveEvent(event){
+  imageRemoveEvent(event) {
     this.profileImageData.image = '';
-    this.form1.myForm.value.image ='';
+    this.form1.myForm.value.image = '';
     this.form1.myForm.markAsDirty();
     this.profileImageData.isUploaded = true;
+  }
+
+  chatBotSubmit(event) {
+    this.data = {
+      "aboutSession": event.aboutSession,
+      "startDate": event.startDate,
+      "endDate": event.endDate
+    };
+    this.uploadImage().then(()=>{
+      this.showLoading().then(() => {
+        this.getChatGPTResponse().then((response) => {
+          event.title = response.sessionTitle;
+          event.description = response.sessionDescription;
+          event.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          event.startDate = moment.unix(event.startDate).format("YYYY-MM-DDTHH:mm");
+          event.endDate = moment.unix(event.endDate).format("YYYY-MM-DDTHH:mm");
+          this.preFillData(event)
+          this.isAssistanceEnabled = false;
+          this.showForm = true;
+          this.loading.dismiss()
+        })
+      })
+    })
+  }
+
+  async showLoading() {
+    this.loading = await this.loadingCtrl.create({
+      message: 'Chat-GPT is generating the contents for you...',
+      spinner: 'dots',
+    });
+    this.loading.present();
+  }
+
+  async uploadImage() {
+    return this.attachment.selectImage(this.profileImageData.type).then(resp => {
+      if (resp.data) {
+        this.imageUploadEvent(resp.data);
+        return resp;
+      }
+    }, error => {
+      console.log(error, "error");
+    })
+  }
+
+  async getChatGPTResponse() {
+    const config = {
+      url: urlConstants.API_URLS.AUTOFILL,
+      payload: this.data,
+    };
+    try {
+      let data: any = await this.http.post(config);
+      return data;
+    }
+    catch (error) {
+    }
   }
 }
